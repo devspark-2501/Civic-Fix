@@ -1,0 +1,77 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { BRIDGE_IMAGE_URL } from '@/constants/assets';
+
+export default function LoginPage() {
+  const [formData, setFormData] = useState({ email: '', password: '' });
+
+  return (
+    <div
+      className="relative flex min-h-screen w-full items-center justify-center bg-cover bg-center font-sans"
+      style={{ backgroundImage: `url('${BRIDGE_IMAGE_URL}')` }}
+    >
+      <div className="absolute inset-0 bg-black/55" />
+
+      <div className="relative z-10 grid min-h-[500px] w-full max-w-4xl grid-cols-1 overflow-hidden rounded-2xl border border-white/10 bg-black/30 backdrop-blur-md shadow-2xl md:grid-cols-2">
+        
+        {/* Left Side */}
+        <div className="flex flex-col justify-center border-b border-white/10 p-8 md:border-b-0 md:border-r md:p-12">
+          <h2 className="mb-4 text-3xl font-bold tracking-tight text-white md:text-4xl">
+            Welcome Back!
+          </h2>
+          <p className="text-sm leading-relaxed text-gray-300 md:text-base">
+            Log in to manage your active civic reports, check municipal response status, and stay updated on local progress.
+          </p>
+        </div>
+
+        {/* Right Side Form */}
+        <div className="flex flex-col justify-center bg-black/40 p-8 backdrop-blur-xl md:p-12">
+          <h3 className="mb-8 text-2xl font-semibold tracking-wide text-white">
+            Log In
+          </h3>
+
+          <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+            <div className="relative border-b border-gray-500 pb-2 focus-within:border-white">
+              <input
+                type="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="w-full bg-transparent pr-8 text-sm text-white placeholder-gray-400 outline-none focus:ring-0"
+              />
+            </div>
+
+            <div className="relative border-b border-gray-500 pb-2 focus-within:border-white">
+              <input
+                type="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                className="w-full bg-transparent pr-8 text-sm text-white placeholder-gray-400 outline-none focus:ring-0"
+              />
+            </div>
+
+            <div className="flex items-center justify-between pt-4">
+              <button
+                type="submit"
+                className="rounded-full border border-gray-400 bg-white/10 px-6 py-2 text-sm text-white transition hover:bg-white hover:text-black"
+              >
+                Log In &gt;
+              </button>
+
+              <Link
+                href="/auth/signup"
+                className="text-xs text-gray-300 underline hover:text-white"
+              >
+                Need An Account?
+              </Link>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  );
+}
