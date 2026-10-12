@@ -2,10 +2,37 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { BRIDGE_IMAGE_URL } from '@/constants/assets';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (res.ok) {
+        router.push('/dashboard');
+      } else {
+        alert('Login failed. Check credentials.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error connecting to backend server');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div
@@ -16,7 +43,7 @@ export default function LoginPage() {
 
       <div className="relative z-10 grid min-h-[500px] w-full max-w-4xl grid-cols-1 overflow-hidden rounded-2xl border border-white/10 bg-black/30 backdrop-blur-md shadow-2xl md:grid-cols-2">
         
-        {/* Left Side */}
+        {/* Left Info Box */}
         <div className="flex flex-col justify-center border-b border-white/10 p-8 md:border-b-0 md:border-r md:p-12">
           <h2 className="mb-4 text-3xl font-bold tracking-tight text-white md:text-4xl">
             Welcome Back!
@@ -26,17 +53,18 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Right Side Form */}
+        {/* Right Glass Form */}
         <div className="flex flex-col justify-center bg-black/40 p-8 backdrop-blur-xl md:p-12">
           <h3 className="mb-8 text-2xl font-semibold tracking-wide text-white">
             Log In
           </h3>
 
-          <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="relative border-b border-gray-500 pb-2 focus-within:border-white">
               <input
                 type="email"
                 placeholder="Email"
+                required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="w-full bg-transparent pr-8 text-sm text-white placeholder-gray-400 outline-none focus:ring-0"
@@ -47,6 +75,7 @@ export default function LoginPage() {
               <input
                 type="password"
                 placeholder="Password"
+                required
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="w-full bg-transparent pr-8 text-sm text-white placeholder-gray-400 outline-none focus:ring-0"
@@ -56,9 +85,10 @@ export default function LoginPage() {
             <div className="flex items-center justify-between pt-4">
               <button
                 type="submit"
-                className="rounded-full border border-gray-400 bg-white/10 px-6 py-2 text-sm text-white transition hover:bg-white hover:text-black"
+                disabled={loading}
+                className="rounded-full border border-gray-400 bg-white/10 px-6 py-2 text-sm text-white transition hover:bg-white hover:text-black active:scale-95 disabled:opacity-50"
               >
-                Log In &gt;
+                {loading ? 'Logging in...' : 'Log In >'}
               </button>
 
               <Link
