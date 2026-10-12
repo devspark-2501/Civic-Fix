@@ -9,18 +9,22 @@ const issueRoutes = require('./routes/issues');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Enable CORS for frontend requests
 app.use(cors());
+
+// Parse incoming JSON requests
 app.use(express.json());
 
-// Routes
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/issues', issueRoutes);
 
+// Root Health Check Route
 app.get('/', (req, res) => {
-  res.send('CivicFix MongoDB Backend API is running!');
+  res.send('CivicFix Backend API with MongoDB is running smoothly!');
 });
 
-// Connect to MongoDB & Start Server
+// Connect to MongoDB and start the server
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
@@ -30,5 +34,5 @@ mongoose
     });
   })
   .catch((err) => {
-    console.error('[CivicFix] MongoDB connection error:', err);
+    console.error('[CivicFix] MongoDB Connection Error:', err);
   });
