@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
@@ -16,9 +17,18 @@ app.use('/api/auth', authRoutes);
 app.use('/api/issues', issueRoutes);
 
 app.get('/', (req, res) => {
-  res.send('CivicFix Backend API is running!');
+  res.send('CivicFix MongoDB Backend API is running!');
 });
 
-app.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
-});
+// Connect to MongoDB & Start Server
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log('[CivicFix] Connected to MongoDB successfully');
+    app.listen(PORT, () => {
+      console.log(`Server listening on http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('[CivicFix] MongoDB connection error:', err);
+  });
