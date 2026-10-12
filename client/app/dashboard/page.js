@@ -42,7 +42,6 @@ export default function DashboardPage() {
     setMessage('');
 
     try {
-      // Send issue report to your Node.js backend
       const res = await fetch('http://localhost:5000/api/issues/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -212,7 +211,6 @@ export default function DashboardPage() {
             </div>
           ))}
         </div>
-        
       </div>
     </div>
   );
