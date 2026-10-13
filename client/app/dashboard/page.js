@@ -5,194 +5,221 @@ import Link from 'next/link';
 
 export default function DashboardPage() {
   const [issues, setIssues] = useState([]);
-  const [form, setForm] = useState({
-    category: 'Sanitation & Garbage',
-    location: '',
-    organization: 'Bhopal Nagar Nigam',
-    description: '',
-    imageUrl: '',
-  });
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
+  // Service categories with high-quality background imagery
+  const services = [
+    {
+      title: 'Sanitation & Waste',
+      category: 'Sanitation & Garbage',
+      desc: 'Garbage dumps, unhygienic spots, and missed doorstep collection.',
+      image: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?q=80&w=800&auto=format&fit=crop',
+    },
+    {
+      title: 'Roads & Infrastructure',
+      category: 'Roads & Potholes',
+      desc: 'Damaged roads, hazardous potholes, and broken street pavements.',
+      image: 'https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?q=80&w=800&auto=format&fit=crop',
+    },
+    {
+      title: 'Electricity & Lighting',
+      category: 'Streetlights & Electricity',
+      desc: 'Flickering streetlights, dangling wires, and local power issues.',
+      image: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?q=80&w=800&auto=format&fit=crop',
+    },
+    {
+      title: 'Water Supply & Sewage',
+      category: 'Water Supply & Leaks',
+      desc: 'Pipe bursts, contaminated water, and drainage overflow.',
+      image: 'https://images.unsplash.com/photo-1541888946425-d0fbb186a5b7?q=80&w=800&auto=format&fit=crop',
+    },
+    {
+      title: 'Healthcare & Environment',
+      category: 'Healthcare & Pollution',
+      desc: 'Air & noise pollution, hospital hygiene, and public health risks.',
+      image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=800&auto=format&fit=crop',
+    },
+    {
+      title: 'Public Transit & Safety',
+      category: 'Transit & Emergency',
+      desc: 'Bus stop maintenance, railway amenities, and safety hazards.',
+      image: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?q=80&w=800&auto=format&fit=crop',
+    },
+  ];
 
-  // Fetch issues from backend on load
+  // Fetch live reports from backend database on load
   useEffect(() => {
     fetch('http://localhost:5000/api/issues')
       .then((res) => res.json())
-      .then((data) => setIssues(data))
-      .catch((err) => console.error('Failed to load issues', err));
+      .then((data) => {
+        if (Array.isArray(data)) setIssues(data);
+      })
+      .catch((err) => console.error('Failed to load issues:', err));
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage('');
-
-    try {
-      const res = await fetch('http://localhost:5000/api/issues/report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setIssues([data.issue, ...issues]);
-        setMessage('✅ Complaint saved in MongoDB & email sent to authority!');
-        setForm({
-          category: 'Sanitation & Garbage',
-          location: '',
-          organization: 'Bhopal Nagar Nigam',
-          description: '',
-          imageUrl: '',
-        });
-      } else {
-        setMessage(`❌ ${data.error || 'Failed to submit issue'}`);
-      }
-    } catch (err) {
-      setMessage('❌ Error connecting to server.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const filteredIssues =
+    selectedCategory === 'All'
+      ? issues
+      : issues.filter((item) => item.category === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-6 mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Civic<span className="text-blue-500">Fix</span> Dashboard
-          </h1>
-          <p className="text-slate-400 text-sm mt-1">
-            Report local grievances directly to municipal bodies and track fixes in real time.
-          </p>
-        </div>
-        <Link
-          href="/"
-          className="self-start md:self-auto px-4 py-2 text-xs font-semibold rounded-full border border-slate-700 bg-slate-900 hover:bg-slate-800 transition"
-        >
-          Logout
-        </Link>
-      </div>
+    <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-blue-500 selection:text-white">
+      {/* Top Glassmorphic Navigation Header */}
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/80 backdrop-blur-xl px-6 py-4 md:px-12">
+        <div className="mx-auto flex max-w-7xl items-center justify-between">
+          <Link href="/" className="text-2xl font-black tracking-tight">
+            Civic<span className="text-blue-500">Fix</span>
+          </Link>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Report Form */}
-        <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 backdrop-blur-md h-fit">
-          <h2 className="text-xl font-semibold mb-4 text-blue-400">Report a New Problem</h2>
-
-          {message && (
-            <p className="mb-4 text-xs p-3 rounded bg-slate-800 border border-slate-700 text-slate-200">
-              {message}
-            </p>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Category</label>
-              <select
-                value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
-              >
-                <option>Sanitation & Garbage</option>
-                <option>Roads & Potholes</option>
-                <option>Streetlights & Electricity</option>
-                <option>Water Supply & Leaks</option>
-                <option>Parks & Maintenance</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Target Authority</label>
-              <input
-                type="text"
-                value={form.organization}
-                onChange={(e) => setForm({ ...form, organization: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Location Details / Landmark</label>
-              <input
-                type="text"
-                value={form.location}
-                onChange={(e) => setForm({ ...form, location: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
-                placeholder="e.g. Near MP Nagar Zone 1 Square"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Photo URL (Optional)</label>
-              <input
-                type="url"
-                value={form.imageUrl}
-                onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
-                placeholder="https://..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Description</label>
-              <textarea
-                rows="3"
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
-                placeholder="Describe the issue clearly..."
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg text-sm transition disabled:opacity-50"
+          <div className="flex items-center gap-4">
+            <span className="hidden text-xs text-slate-400 sm:inline-block">
+              Connected Authority Network: <strong className="text-emerald-400">Active</strong>
+            </span>
+            <Link
+              href="/"
+              className="rounded-full border border-white/15 bg-white/5 px-5 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10 hover:text-white active:scale-95"
             >
-              {loading ? 'Saving & Emailing...' : 'Submit & Email Authority'}
-            </button>
-          </form>
+              Log Out
+            </Link>
+          </div>
         </div>
+      </header>
 
-        {/* Live Database Feed */}
-        <div className="lg:col-span-2 space-y-4">
-          <h2 className="text-xl font-semibold text-slate-200">Live Database Complaints Feed</h2>
+      {/* Main Content Area */}
+      <main className="mx-auto max-w-7xl px-6 py-10 md:px-12 space-y-16">
+        
+        {/* Banner Section */}
+        <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/40 p-8 md:p-14 backdrop-blur-md">
+          <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-blue-600/20 blur-3xl pointer-events-none" />
+          <div className="relative z-10 max-w-2xl">
+            <span className="inline-block rounded-full bg-blue-500/10 px-3.5 py-1 text-xs font-medium text-blue-400 border border-blue-500/20 mb-4">
+              Citizen Support Network
+            </span>
+            <h1 className="text-3xl font-extrabold tracking-tight sm:text-5xl">
+              Building Cleaner & Safer Communities Together
+            </h1>
+            <p className="mt-4 text-sm text-slate-300 md:text-base leading-relaxed">
+              Explore municipal departments, inspect live city grievance records, and stay updated on ongoing infrastructure fixes directly managed by local authorities.
+            </p>
+          </div>
+        </section>
 
-          {issues.length === 0 ? (
-            <p className="text-slate-400 text-sm">No complaints recorded yet. Be the first to report one!</p>
-          ) : (
-            issues.map((issue) => (
+        {/* Section 1: Services & Categories Grid */}
+        <section className="space-y-6">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight text-white">
+              Public Service Sectors
+            </h2>
+            <p className="text-sm text-slate-400 mt-1">
+              Automated routing directly dispatches complaints to designated government & municipal emails.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {services.map((service, idx) => (
               <div
-                key={issue._id}
-                className="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition"
+                key={idx}
+                onClick={() => setSelectedCategory(service.category)}
+                className="group relative cursor-pointer overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10"
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                    {issue.category}
-                  </span>
-                  <span className="text-xs text-slate-400">{new Date(issue.createdAt).toLocaleDateString()}</span>
-                </div>
+                {/* Background Card Image */}
+                <div
+                  className="h-44 w-full bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+                  style={{ backgroundImage: `url('${service.image}')` }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent" />
 
-                <h3 className="font-semibold text-slate-100 text-base mb-1">{issue.location}</h3>
-                <p className="text-slate-300 text-sm mb-3">{issue.description}</p>
-
-                <div className="flex items-center justify-between text-xs border-t border-slate-800/80 pt-3 text-slate-400">
-                  <span>Org: <strong className="text-slate-200">{issue.organization}</strong></span>
-                  <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    {issue.status}
-                  </span>
+                {/* Card Text Content */}
+                <div className="relative p-6 -mt-12 space-y-2">
+                  <h3 className="text-lg font-bold text-white group-hover:text-blue-400 transition-colors">
+                    {service.title}
+                  </h3>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    {service.desc}
+                  </p>
                 </div>
               </div>
-            ))
+            ))}
+          </div>
+        </section>
+
+        {/* Section 2: Live Database Reports Stream */}
+        <section className="space-y-6 pt-6 border-t border-white/10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight text-white">
+                Live Resolved & Active Reports
+              </h2>
+              <p className="text-sm text-slate-400 mt-1">
+                Real-time grievances synced directly from MongoDB.
+              </p>
+            </div>
+
+            {/* Category Filter Pills */}
+            <div className="flex flex-wrap gap-2">
+              {['All', 'Sanitation & Garbage', 'Roads & Potholes', 'Streetlights & Electricity', 'Water Supply & Leaks'].map(
+                (cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-medium border transition ${
+                      selectedCategory === cat
+                        ? 'bg-blue-600 border-blue-500 text-white'
+                        : 'bg-slate-900 border-white/10 text-slate-400 hover:text-white hover:border-slate-700'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+
+          {/* Issues Feed Grid */}
+          {filteredIssues.length === 0 ? (
+            <div className="rounded-2xl border border-white/10 bg-slate-900/30 p-12 text-center text-slate-400">
+              <p className="text-sm">No complaints found for the selected category.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredIssues.map((issue) => (
+                <div
+                  key={issue._id || issue.id}
+                  className="flex flex-col justify-between rounded-2xl border border-white/10 bg-slate-900/50 p-6 backdrop-blur-md transition hover:border-slate-700"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="rounded-full bg-blue-500/10 border border-blue-500/20 px-3 py-1 text-xs font-semibold text-blue-400">
+                        {issue.category}
+                      </span>
+                      <span className="text-xs text-slate-400">
+                        {issue.createdAt ? new Date(issue.createdAt).toLocaleDateString() : 'Recent'}
+                      </span>
+                    </div>
+
+                    <h3 className="text-base font-semibold text-slate-100">
+                      {issue.location}
+                    </h3>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      {issue.description}
+                    </p>
+                  </div>
+
+                  <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4 text-xs text-slate-400">
+                    <span>
+                      Authority: <strong className="text-slate-200">{issue.organization}</strong>
+                    </span>
+                    <span className="rounded bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 font-medium text-emerald-400">
+                      {issue.status || 'Emailed & Logged'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
-        </div>
-      </div>
+        </section>
+
+      </main>
     </div>
   );
 }
