@@ -75,13 +75,20 @@ export default function SectorReportPage({ params }) {
     setLoading(true);
     setStatusMessage({ type: '', text: '' });
 
+    // Save or read user email for history tracking
+    const userEmail = form.email || localStorage.getItem('userEmail') || 'user@civicfix.com';
+    localStorage.setItem('userEmail', userEmail);
+
     try {
       const payload = {
         category: config.category,
         location: form.location,
         organization: form.organization,
-        description: `[Complainant: ${form.fullName} | Contact: ${form.phone || 'N/A'}] - ${form.description}`,
+        fullName: form.fullName,
+        phone: form.phone,
+        description: form.description,
         imageUrl: form.imageUrl,
+        userEmail: userEmail,
       };
 
       const res = await fetch('http://localhost:5000/api/issues/report', {
@@ -95,10 +102,10 @@ export default function SectorReportPage({ params }) {
       if (res.ok) {
         setStatusMessage({
           type: 'success',
-          text: '✅ Complaint submitted successfully! Official email dispatched to municipal authorities.',
+          text: '✅ Complaint registered in database & official email dispatched to authorities!',
         });
         setTimeout(() => {
-          router.push('/dashboard');
+          router.push('/history');
         }, 2000);
       } else {
         setStatusMessage({
@@ -107,6 +114,7 @@ export default function SectorReportPage({ params }) {
         });
       }
     } catch (err) {
+      console.error('Network Error:', err);
       setStatusMessage({
         type: 'error',
         text: '❌ Unable to connect to backend server. Ensure Express is running on port 5000.',
@@ -194,6 +202,22 @@ export default function SectorReportPage({ params }) {
 
                   <div>
                     <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                      Email Address (For History Sync) *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="e.g. alex@gmail.com"
+                      value={form.email}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      className="w-full rounded-xl border border-white/15 bg-black/40 p-3 text-xs text-white placeholder-slate-500 outline-none focus:border-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
                       Phone Number
                     </label>
                     <input
@@ -201,23 +225,6 @@ export default function SectorReportPage({ params }) {
                       placeholder="e.g. +91 9876543210"
                       value={form.phone}
                       onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                      className="w-full rounded-xl border border-white/15 bg-black/40 p-3 text-xs text-white placeholder-slate-500 outline-none focus:border-white"
-                    />
-                  </div>
-                </div>
-
-                {/* Location & Authority */}
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                      Exact Location / Landmark *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Near City Hospital Gate 2, MP Nagar"
-                      value={form.location}
-                      onChange={(e) => setForm({ ...form, location: e.target.value })}
                       className="w-full rounded-xl border border-white/15 bg-black/40 p-3 text-xs text-white placeholder-slate-500 outline-none focus:border-white"
                     />
                   </div>
@@ -236,14 +243,29 @@ export default function SectorReportPage({ params }) {
                   </div>
                 </div>
 
+                {/* Location */}
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                    Exact Location / Landmark *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Near City Hospital Gate 2, MP Nagar"
+                    value={form.location}
+                    onChange={(e) => setForm({ ...form, location: e.target.value })}
+                    className="w-full rounded-xl border border-white/15 bg-black/40 p-3 text-xs text-white placeholder-slate-500 outline-none focus:border-white"
+                  />
+                </div>
+
                 {/* Photo URL */}
                 <div>
                   <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                    Photo URL (Optional)
+                    Photo Evidence URL (Optional)
                   </label>
                   <input
                     type="url"
-                    placeholder="https://..."
+                    placeholder="https://images.unsplash.com/..."
                     value={form.imageUrl}
                     onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
                     className="w-full rounded-xl border border-white/15 bg-black/40 p-3 text-xs text-white placeholder-slate-500 outline-none focus:border-white"
@@ -270,7 +292,7 @@ export default function SectorReportPage({ params }) {
                   disabled={loading}
                   className="w-full rounded-xl border border-white/20 bg-white py-3 text-xs font-bold text-black transition hover:bg-slate-200 active:scale-[0.99] disabled:opacity-50"
                 >
-                  {loading ? 'Submitting & Dispatching Email...' : 'Dispatch Grievance Email >'}
+                  {loading ? 'Saving & Dispatching Email...' : 'Submit Grievance & Dispatch Email >'}
                 </button>
               </form>
             </div>
