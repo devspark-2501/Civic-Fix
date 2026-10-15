@@ -15,8 +15,10 @@ const DEPARTMENT_EMAILS = {
   'Roads & Potholes': 'commoffice@bmconline.gov.in', // BMC Commissioner Office
   'Streetlights & Electricity': 'contact.mpcz@gmail.com', // MP Discom Customer Care
   'Water Supply & Leaks': 'support@bmconline.gov.in', // BMC Water Dept
+  'Healthcare & Pollution': 'support@bmconline.gov.in', // Health & Environment Dept
   'Parks & Maintenance': 'bscdcl@smartbhopal.city', // Smart City Bhopal
   'Public Transport': 'helpdesk@mybusbhopal.in', // BCLL City Bus Service
+  'Transit & Emergency': 'helpdesk@mybusbhopal.in', // Transit & Emergency
   'Railways': 'etickets@irctc.co.in', // Indian Railways
 };
 
@@ -27,16 +29,17 @@ const DEPARTMENT_EMAILS = {
 const sendComplaintEmail = async (issueDetails) => {
   const { category, organization, locationText, description, imageUrl } = issueDetails;
 
-  // Determine destination address with fallback to general municipal mail
+  // Determine destination address with fallback to municipal or configured email
   const destinationEmail =
     DEPARTMENT_EMAILS[category] ||
     process.env.MUNICIPAL_EMAIL ||
+    process.env.EMAIL_USER ||
     'support@bmconline.gov.in';
 
   const mailOptions = {
     from: `"CivicFix Citizen Portal" <${process.env.EMAIL_USER}>`,
     to: destinationEmail,
-    subject: `[CivicFix Grievance Report] ${category} - ${locationText}`,
+    subject: `[CivicFix Grievance Report] ${category} - ${locationText || 'Location Provided'}`,
     html: `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; border: 1px solid #ddd; padding: 20px; border-radius: 8px;">
         <h2 style="color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 8px;">
@@ -85,8 +88,9 @@ const sendComplaintEmail = async (issueDetails) => {
     console.log(`[CivicFix] Complaint email sent to ${destinationEmail}. Message ID: ${info.messageId}`);
     return info;
   } catch (error) {
-    console.error('[CivicFix] Error sending complaint email:', error);
-    throw error;
+    console.error('[CivicFix] Failed to dispatch email:', error.message);
+    // Return false so the database save operation can still complete successfully
+    return false;
   }
 };
 
