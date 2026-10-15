@@ -1,22 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function FloatingSidebar() {
-  const [active, setActive] = useState('dashboard');
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const isDashboard = pathname === '/dashboard';
+  const isHistory = pathname === '/history';
 
   return (
     <aside className="fixed left-5 top-1/2 z-50 -translate-y-1/2">
-      {/* Slim Glassmorphic Capsule */}
       <div className="flex flex-col items-center gap-2.5 rounded-full border border-white/20 bg-black/50 p-2 backdrop-blur-xl shadow-2xl">
         
-        {/* 1. Dashboard / Grid Icon */}
+        {/* 1. Dashboard Icon */}
         <button
-          onClick={() => setActive('dashboard')}
+          onClick={() => router.push('/dashboard')}
           title="Dashboard"
           className={`flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 ${
-            active === 'dashboard'
+            isDashboard
               ? 'bg-white text-black shadow-md scale-105'
               : 'text-slate-300 hover:bg-white/10 hover:text-white'
           }`}
@@ -26,12 +29,12 @@ export default function FloatingSidebar() {
           </svg>
         </button>
 
-        {/* 2. Complaints / Check-Box Icon */}
+        {/* 2. History Icon */}
         <button
-          onClick={() => setActive('complaints')}
-          title="Complaints & Status"
+          onClick={() => router.push('/history')}
+          title="Complaint History"
           className={`flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 ${
-            active === 'complaints'
+            isHistory
               ? 'bg-white text-black shadow-md scale-105'
               : 'text-slate-300 hover:bg-white/10 hover:text-white'
           }`}
@@ -41,7 +44,7 @@ export default function FloatingSidebar() {
           </svg>
         </button>
 
-        {/* 3. Logout / Exit Icon */}
+        {/* 3. Logout Icon */}
         <Link
           href="/"
           title="Logout"
