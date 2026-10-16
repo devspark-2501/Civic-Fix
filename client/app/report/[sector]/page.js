@@ -91,7 +91,10 @@ export default function SectorReportPage({ params }) {
         userEmail: userEmail,
       };
 
-      const res = await fetch('http://localhost:5000/api/issues/report', {
+      // Uses live Vercel config URL or falls back to localhost for local testing
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+      const res = await fetch(`${API_URL}/api/issues/report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -117,7 +120,7 @@ export default function SectorReportPage({ params }) {
       console.error('Network Error:', err);
       setStatusMessage({
         type: 'error',
-        text: '❌ Unable to connect to backend server. Ensure Express is running on port 5000.',
+        text: '❌ Unable to connect to backend server. Ensure Express backend is online.',
       });
     } finally {
       setLoading(false);
