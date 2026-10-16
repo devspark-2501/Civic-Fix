@@ -3,38 +3,49 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { BRIDGE_IMAGE_URL } from '../../../constants/assets';
+import { DASHBOARD_BG_URL } from '../../constants/assets';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setErrorMessage('');
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
+      // Reads NEXT_PUBLIC_API_URL from Vercel config, or falls back to localhost for local dev
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
+      const res = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
+        // Store user email in localStorage for cross-page session reference
+        if (data.email) {
+          localStorage.setItem('userEmail', data.email);
+        } else {
+          localStorage.setItem('userEmail', email);
+        }
+
         router.push('/dashboard');
       } else {
-        setErrorMessage(data.error || 'Login failed. Please check your credentials.');
+        setErrorMessage(data.error || 'Invalid credentials. Please try again.');
       }
     } catch (err) {
-      console.error('Network Error:', err);
-      setErrorMessage(
-        'Unable to connect to the backend server. Please verify your Express server is running on port 5000.'
-      );
+      console.error('Login Error:', err);
+      setErrorMessage('Unable to connect to the backend server. Please verify your Express backend is live.');
     } finally {
       setLoading(false);
     }
@@ -42,79 +53,77 @@ export default function LoginPage() {
 
   return (
     <div
-      className="relative flex min-h-screen w-full items-center justify-center bg-cover bg-center font-sans"
-      style={{ backgroundImage: `url('${BRIDGE_IMAGE_URL}')` }}
+      className="relative min-h-screen w-full bg-cover bg-center bg-fixed font-sans text-slate-100 flex items-center justify-center p-4"
+      style={{ backgroundImage: `url('${DASHBOARD_BG_URL}')` }}
     >
-      {/* Background Dark Overlay */}
-      <div className="absolute inset-0 bg-black/55" />
+      {/* Background Overlay */}
+      <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
 
-      {/* Main Glassmorphic Card Container */}
-      <div className="relative z-10 grid min-h-[500px] w-full max-w-4xl grid-cols-1 overflow-hidden rounded-2xl border border-white/10 bg-black/30 backdrop-blur-md shadow-2xl md:grid-cols-2">
-        
-        {/* Left Side Section */}
-        <div className="flex flex-col justify-center border-b border-white/10 p-8 md:border-b-0 md:border-r md:p-12">
-          <h2 className="mb-4 text-3xl font-bold tracking-tight text-white md:text-4xl">
-            Welcome Back!
-          </h2>
-          <p className="text-sm leading-relaxed text-gray-300 md:text-base">
-            Log in to manage your active civic reports, check municipal response status, and stay updated on local progress.
+      {/* Main Login Card */}
+      <div className="relative z-10 w-full max-w-md rounded-3xl border border-white/15 bg-black/60 p-8 shadow-2xl backdrop-blur-xl">
+        <div className="mb-6 text-center">
+          <Link href="/" className="text-3xl font-black tracking-tight text-white">
+            Civic<span className="text-blue-400">Fix</span>
+          </Link>
+          <p className="mt-2 text-xs text-slate-400">
+            Log in to manage civic reports, check updates, and stay connected with your local council.
           </p>
         </div>
 
-        {/* Right Side Form Section */}
-        <div className="flex flex-col justify-center bg-black/40 p-8 backdrop-blur-xl md:p-12">
-          <h3 className="mb-8 text-2xl font-semibold tracking-wide text-white">
-            Log In
-          </h3>
+        <h2 className="mb-6 text-xl font-bold text-white">Log In</h2>
 
-          {errorMessage && (
-            <div className="mb-4 rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-xs text-red-400">
-              {errorMessage}
-            </div>
-          )}
+        {errorMessage && (
+          <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-300">
+            {errorMessage}
+          </div>
+        )}
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div className="relative border-b border-gray-500 pb-2 focus-within:border-white">
-              <input
-                type="email"
-                placeholder="Email"
-                required
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full bg-transparent pr-8 text-sm text-white placeholder-gray-400 outline-none focus:ring-0"
-              />
-            </div>
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div>
+            <label className="block text-xs font-medium text-slate-300 mb-1.5">
+              Email Address
+            </label>
+            <input
+              type="email"
+              required
+              placeholder="e.g. devspark2501@gmail.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-xl border border-white/15 bg-black/40 p-3 text-xs text-white placeholder-slate-500 outline-none focus:border-white transition"
+            />
+          </div>
 
-            <div className="relative border-b border-gray-500 pb-2 focus-within:border-white">
-              <input
-                type="password"
-                placeholder="Password"
-                required
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full bg-transparent pr-8 text-sm text-white placeholder-gray-400 outline-none focus:ring-0"
-              />
-            </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-300 mb-1.5">
+              Password
+            </label>
+            <input
+              type="password"
+              required
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-xl border border-white/15 bg-black/40 p-3 text-xs text-white placeholder-slate-500 outline-none focus:border-white transition"
+            />
+          </div>
 
-            <div className="flex items-center justify-between pt-4">
-              <button
-                type="submit"
-                disabled={loading}
-                className="rounded-full border border-gray-400 bg-white/10 px-6 py-2 text-sm text-white transition hover:bg-white hover:text-black active:scale-95 disabled:opacity-50"
-              >
-                {loading ? 'Logging in...' : 'Log In >'}
-              </button>
+          <div className="flex items-center justify-between pt-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded-full border border-white/20 bg-white px-6 py-2.5 text-xs font-bold text-black transition hover:bg-slate-200 active:scale-95 disabled:opacity-50"
+            >
+              {loading ? 'Logging in...' : 'Log In >'}
+            </button>
 
-              <Link
-                href="/auth/signup"
-                className="text-xs text-gray-300 underline hover:text-white"
-              >
-                Need An Account?
-              </Link>
-            </div>
-          </form>
-        </div>
-
+            <Link
+              href="/register"
+              className="text-xs text-slate-400 hover:text-white underline underline-offset-4 transition"
+            >
+              Need An Account?
+            </Link>
+          </div>
+        </form>
       </div>
     </div>
   );
