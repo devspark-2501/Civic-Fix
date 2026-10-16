@@ -84,6 +84,7 @@ const sendComplaintEmail = async (issueDetails) => {
   };
 
   try {
+    
     const info = await transporter.sendMail(mailOptions);
     console.log(`[CivicFix] Complaint email sent to ${destinationEmail}. Message ID: ${info.messageId}`);
     return info;
